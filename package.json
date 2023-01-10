@@ -1,0 +1,20 @@
+{
+  "name": "streaming",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "serve_dev": "vite",
+    "serve_build": "vite build",
+    "serve_preview": "vite preview",
+    "server_dev": "nodemon src/backend/main.js",
+    "server": "node src/backend/main.js"
+  },
+  "dependencies": {
+    "nodemon": "^2.0.20",
+    "vue": "^3.2.45"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "vite": "^4.0.0"
+  }
+}
