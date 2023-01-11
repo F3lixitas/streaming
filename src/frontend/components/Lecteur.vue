@@ -12,6 +12,7 @@
         <button class="" @click="mute" style="position: absolute; left: 50px; border-radius: 5px"><i id="sound" class="material-icons" style=" font-size: 30px; color: rgba(250, 50, 100, 1)">volume_up</i></button>
         <input @input="volumeChange" type="range" min="0" max="100" value="100" class="slider" id="soundSlider" style="position: absolute; left: 110px; top: 0; width: 100px; height: 35px; color: rgba(250, 50, 100, 1)"/>
         <button class="" @click="switchFullscreen" style="position: absolute; right: 0; border-radius: 5px"><i id="fullscreen" class="material-icons" style="font-size: 40px; color: rgba(250, 50, 100, 1)">fullscreen</i></button>
+        <span style="position: absolute; display: flex; justify-content: space-between; border-radius: 5px; padding: 6px 5px; right: 50px; width: 100px; top: 5px; bottom: 5px; background-color: rgba(200, 100, 100, 0.4)"><div id="currentTime" style="margin: 0px 5px">0:0</div> / <div id="totalTime" style="margin: 0px 5px">0:0</div></span>
       </div>
     </div>
     <div style="position: absolute; top: 0; bottom: 45px; width: 100%" @click="play"></div>
@@ -38,9 +39,14 @@ export default {
     let videoProgress = document.getElementById("videoProgress");
     video.addEventListener('loadedmetadata', () => {
       videoProgress.setAttribute("max", video.duration);
+      let totalTime = document.getElementById("totalTime");
+      totalTime.innerHTML = this.toTime(video.duration);
     });
     video.addEventListener('timeupdate', () =>{
+      console.log(video.currentTime);
       videoProgress.value = video.currentTime;
+      let currentTime = document.getElementById("currentTime");
+      currentTime.innerHTML = this.toTime(video.currentTime);
     });
     videoProgress.addEventListener('click', (e)=> {
       const rect = videoProgress.getBoundingClientRect();
@@ -49,6 +55,16 @@ export default {
     });
   },
   methods: {
+    toTime(seconds){
+      const hours = Math.floor(seconds/3600);
+      const minutes = Math.floor((seconds-hours*3600)/60);
+
+      if(hours>0){
+        return hours + ":" + minutes + ":" + Math.floor(seconds-hours*3600-minutes*60);
+      } else{
+        return minutes + ":" + Math.floor(seconds-minutes*60);
+      }
+    },
     volumeChange(){
       let video = document.getElementById("video");
       let soundSlider = document.getElementById("soundSlider");
@@ -198,24 +214,35 @@ button:hover{
   animation-name: exit;
   animation-duration: 0.1s;
 }
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
 @keyframes enter {
   0% {
     height: 0px;
     max-height: 0px;
+    opacity: 0%;
   }
   100%{
     height: 45px;
     max-height: 45px;
+    opacity: 100%;
   }
 }
 @keyframes exit {
   0% {
     height: 45px;
     max-height: 45px;
+    opacity: 100%;
   }
   100%{
     height: 0px;
     max-height: 0px;
+    opacity: 0%;
   }
 }
 </style>
