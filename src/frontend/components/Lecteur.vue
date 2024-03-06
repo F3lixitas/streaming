@@ -4,18 +4,22 @@
       <source src="data/24hcinderella.mp4" type="video/mp4"/>
     </video>
     <div id="controls" class="controls" @mouseover="mouseOverControls" @mouseleave="mouseExitsControls">
-      <div style="position: relative; width: 100%; height: 5px">
-        <progress id="videoProgress" max="100" value="0" style="position: absolute; top: 0; border: none; width: 100%; height: 5px;"></progress>
-      </div>
-      <div style="position: relative; width: 100%; height: 40px;">
+      <div style="position: absolute; top: 5px; width: 100%; height: 40px;">
         <button class="" @click="play" style="position: absolute; left: 0; border-radius: 5px"><i id="play" class="material-icons" style="font-size: 40px; color: rgba(250, 50, 100, 1)">play_arrow</i></button>
         <button class="" @click="mute" style="position: absolute; left: 50px; border-radius: 5px"><i id="sound" class="material-icons" style=" font-size: 30px; color: rgba(250, 50, 100, 1)">volume_up</i></button>
         <input @input="volumeChange" type="range" min="0" max="100" value="100" class="slider" id="soundSlider" style="position: absolute; left: 110px; top: 0; width: 100px; height: 35px; color: rgba(250, 50, 100, 1)"/>
         <button class="" @click="switchFullscreen" style="position: absolute; right: 0; border-radius: 5px"><i id="fullscreen" class="material-icons" style="font-size: 40px; color: rgba(250, 50, 100, 1)">fullscreen</i></button>
-        <span style="position: absolute; display: flex; justify-content: space-between; border-radius: 5px; padding: 6px 5px; right: 50px; width: 100px; top: 5px; bottom: 5px; background-color: rgba(200, 100, 100, 0.4)"><div id="currentTime" style="margin: 0px 5px">0:0</div> / <div id="totalTime" style="margin: 0px 5px">0:0</div></span>
+        <button id="settingsButton" class="" @click="openSettings" style="position: absolute; right: 50px; border-radius: 5px"><i id="fullscreen" class="material-icons" style="font-size: 30px; padding-top: 2px; color: rgba(250, 50, 100, 1)">settings</i></button>
+        <span style="position: absolute; display: flex; justify-content: space-between; border-radius: 5px; padding: 6px 5px; right: 100px; width: 100px; top: 5px; bottom: 5px; background-color: rgba(200, 100, 100, 0.4)"><div id="currentTime" style="margin: 0px 5px">0:0</div> / <div id="totalTime" style="margin: 0px 5px">0:0</div></span>
+      </div>
+      <div style="position: absolute; width: 100%; height: 5px; top: 0px">
+        <progress id="videoProgress" max="100" value="0" style="position: absolute; top: 0px; border: none; width: 100%; height: 5px;"></progress>
       </div>
     </div>
     <div style="position: absolute; top: 0; bottom: 45px; width: 100%" @click="play"></div>
+    <div id="settingsPanel" style="position: absolute; visibility: hidden; bottom: 50px; right: 5px; width: 200px; height: 300px; background-color: rgba(0, 0, 0, 0.15); backdrop-filter: blur(10px); border-radius: 10px">
+
+    </div>
   </div>
 
 </template>
@@ -31,10 +35,12 @@ export default {
       mouseOver : Boolean(false),
       mouseOverC : Boolean(false),
       muted : Boolean(false),
-      previousVolume : Number(1)
+      previousVolume : Number(1),
+      settingsOpened : Boolean(false)
     }
   },
   mounted(){
+    let container = document.getElementById("container");
     let video = document.getElementById("video");
     let videoProgress = document.getElementById("videoProgress");
     video.addEventListener('loadedmetadata', () => {
@@ -43,15 +49,71 @@ export default {
       totalTime.innerHTML = this.toTime(video.duration);
     });
     video.addEventListener('timeupdate', () =>{
-      console.log(video.currentTime);
       videoProgress.value = video.currentTime;
       let currentTime = document.getElementById("currentTime");
       currentTime.innerHTML = this.toTime(video.currentTime);
     });
-    videoProgress.addEventListener('click', (e)=> {
+    video.addEventListener('ended', () => {
+      let playButton = document.getElementById("play");
+      playButton.innerHTML = "play_arrow";
+      this.playing = false;
+    });
+
+    let mouseDown = false;
+    let flaggedForClosure = false;
+
+    videoProgress.addEventListener('mouseenter', (e)=>{
+      flaggedForClosure = false;
+      videoProgress.className = "progressHover";
+      videoProgress.style.height = '10px';
+      videoProgress.style.top = '0px';
+    });
+    videoProgress.addEventListener('mouseleave', (e)=>{
+      if(mouseDown) {
+        flaggedForClosure = true;
+        return;
+      }
+      videoProgress.className = "";
+      videoProgress.style.height = '5px';
+    });
+
+    videoProgress.addEventListener('mousedown', (e)=> {
       const rect = videoProgress.getBoundingClientRect();
       const pos = (e.pageX  - rect.left) / videoProgress.offsetWidth;
       video.currentTime = pos * video.duration;
+      mouseDown = true;
+    });
+
+    container.addEventListener('mousemove', (e)=> {
+      if(mouseDown){
+        const rect = videoProgress.getBoundingClientRect();
+        const pos = (e.pageX  - rect.left) / videoProgress.offsetWidth;
+        video.currentTime = pos * video.duration;
+      }
+    });
+
+    const containsMouse = (mouse, rect) => {
+      console.log("pageX : ", mouse.pageX, "\npageY : ", mouse.pageY);
+      console.log(rect);
+      return (mouse.pageX > rect.left) && (mouse.pageX < rect.right) && (mouse.pageY > rect.top) && (mouse.pageY < rect.bottom);
+
+    }
+
+    let settingsPanel = document.getElementById("settingsPanel");
+    let settingsButton = document.getElementById("settingsButton");
+    window.addEventListener('click', (e)=> {
+      
+      if((!containsMouse(e, settingsPanel.getBoundingClientRect()) && !containsMouse(e, settingsButton.getBoundingClientRect())) && this.settingsOpened){
+        this.openSettings();
+      }
+    })
+
+    container.addEventListener('mouseup', (e)=> {
+      mouseDown = false;
+      if(flaggedForClosure){
+        videoProgress.className = "";
+        videoProgress.style.height = '5px';
+      }
     });
   },
   methods: {
@@ -81,6 +143,15 @@ export default {
         video.play();
       }
       this.playing = !this.playing;
+    },
+    openSettings(){
+      let settingsPanel = document.getElementById("settingsPanel");
+      if(this.settingsOpened){
+        settingsPanel.style.visibility = "hidden";
+      } else {
+        settingsPanel.style.visibility = "visible";
+      }
+      this.settingsOpened = !this.settingsOpened;
     },
     mute(){
       let video = document.getElementById("video");
@@ -214,12 +285,17 @@ button:hover{
   animation-name: exit;
   animation-duration: 0.1s;
 }
-.vertical-center {
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
+.progressHover{
+  animation-name: progress;
+  animation-duration: 0.1s;
+}
+@keyframes progress {
+  0% {
+    height: 5px;
+  }
+  100% {
+    height: 10px;
+  }
 }
 @keyframes enter {
   0% {
