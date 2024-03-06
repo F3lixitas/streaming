@@ -1,7 +1,7 @@
 <template>
   <div id="container" class="container" @mouseover="over" @mousemove="move" @mouseleave="mouseExit">
     <video id="video" width="1280" height="720">
-      <source src="data/24hcinderella.mp4" type="video/mp4"/>
+      <source @src="source_file" type="video/mp4"/>
     </video>
     <div id="controls" class="controls" @mouseover="mouseOverControls" @mouseleave="mouseExitsControls">
       <div style="position: absolute; top: 5px; width: 100%; height: 40px;">
@@ -29,6 +29,7 @@ export default {
   name: "Lecteur",
   setup() {
     return {
+      source_file : String("data/24hcinderella.mp4"),
       playing : Boolean(false),
       fullscreen : Boolean(false),
       moved : Number(0),
@@ -42,6 +43,7 @@ export default {
   mounted(){
     let container = document.getElementById("container");
     let video = document.getElementById("video");
+    video.children[0].setAttribute("src", this.source_file);
     let videoProgress = document.getElementById("videoProgress");
     video.addEventListener('loadedmetadata', () => {
       videoProgress.setAttribute("max", video.duration);

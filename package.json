@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve_dev": "vite",
+    "serve": "vite serve",
     "serve_build": "vite build",
     "serve_preview": "vite preview",
     "server_dev": "nodemon src/backend/main.js",
@@ -11,6 +12,7 @@
   },
   "dependencies": {
     "nodemon": "^2.0.20",
+    "serve": "^14.2.1",
     "vue": "^3.2.45"
   },
   "devDependencies": {
